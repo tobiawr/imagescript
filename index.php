@@ -15,7 +15,7 @@ $languageCodes = [
 ];
 
 // Base directory to scan for images
-$baseDir = './images'; // Change this to the path of your images folder
+$baseDir = __DIR__ . '/images'; // Change this to the path of your images folder
 
 // Base URL for the images
 $baseUrl = getenv('APP_BASE_URL') ?: '/images/';
@@ -139,6 +139,7 @@ function getLangSpecificImagesForSubfolder($baseDir, $folder, $subfolder) {
 
 // Get the top-level folders
 $topLevelFolders = getTopLevelFolders($baseDir);
+usort($topLevelFolders, 'strnatcasecmp');
 
 // Function to get all language folders in a subfolder
 function getLanguageFoldersInSubfolder($baseDir, $folder, $subfolder) {
@@ -211,7 +212,7 @@ function getAvailableLanguages($baseDir, $topLevelFolders) {
 }
 
 // Get current tab from query parameter
-$currentTab = isset($_GET['tab']) ? $_GET['tab'] : 'gallery';
+$currentTab = ($_GET['tab'] ?? '') === 'status' ? 'status' : 'gallery';
 $requestedLanguage = isset($_GET['lang']) ? strtolower(trim($_GET['lang'])) : '';
 $availableLanguages = getAvailableLanguages($baseDir, $topLevelFolders);
 
@@ -223,294 +224,33 @@ if (in_array($requestedLanguage, $availableLanguages, true)) {
     $currentLanguage = '';
 }
 
-// Output HTML
+require_once __DIR__ . '/workspace.php';
+$languageNames = ['afr'=>'Afrikaans','eng'=>'English','fra'=>'French','grc'=>'Ancient Greek','hin'=>'Hindi','hun'=>'Hungarian','ita'=>'Italian','lus'=>'Mizo','mlg'=>'Malagasy','mni'=>'Manipuri','nep'=>'Nepali','nld'=>'Dutch','por'=>'Portuguese','rus'=>'Russian','spa'=>'Spanish','tgl'=>'Tagalog','tur'=>'Turkish','ukr'=>'Ukrainian','deu'=>'German'];
+$languageLabels = [];
+foreach ($availableLanguages as $code) $languageLabels[$code] = $languageNames[$code] ?? strtoupper($code);
+$collectionNames = ['atn'=>'All Things New','gcbook'=>'Great Controversy Book','ubp'=>'Unlock Bible Prophecy','ubp2'=>'Unlocking Bible Prophecies','trc'=>'Quiz Tract','tlw'=>'Thinking & Living Well','kg'=>'Knowing God','files'=>'Documents & downloads','logo'=>'Brand & logos','website'=>'Website assets','selector'=>'Starter automations'];
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Image List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            padding: 12px 16px;
-        }
-        h1 {
-            color: #333;
-            margin: 0;
-        }
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 12px;
-            border-bottom: 2px solid #ddd;
-        }
-        .tab-button {
-            padding: 10px 16px;
-            background-color: #e9ecef;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            color: #495057;
-            border-radius: 4px 4px 0 0;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .tab-button:hover {
-            background-color: #dee2e6;
-        }
-        .tab-button.active {
-            background-color: #007bff;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            margin: 20px 0;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        th {
-            background-color: #007bff;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-        }
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-        }
-        tr:hover {
-            background-color: #f8f9fa;
-        }
-        .status-present {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .status-missing {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .status-icon {
-            font-size: 18px;
-        }
-        .subfolder-title {
-            background-color: #e9ecef;
-            padding: 15px;
-            margin: 20px 0 10px 0;
-            border-radius: 4px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #495057;
-        }
-        .top-level-title {
-            background-color: #007bff;
-            color: white;
-            padding: 15px;
-            margin: 20px 0 10px 0;
-            border-radius: 4px;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .image-section {
-            background-color: white;
-            border-radius: 8px;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        .section-heading {
-            background-color: #007bff;
-            color: white;
-            padding: 15px;
-            cursor: pointer;
-            user-select: none;
-            font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .section-heading:hover {
-            background-color: #0056b3;
-        }
-        .toggle-icon {
-            font-size: 24px;
-        }
-        .section-heading.collapsed + .image-gallery {
-            display: none;
-        }
-        .image-gallery {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            padding: 20px;
-            margin: 0;
-            gap: 15px;
-        }
-        .image-item {
-            text-align: center;
-            flex: 0 0 auto;
-        }
-        .image-item img {
-            max-width: 150px;
-            max-height: 150px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            cursor: pointer;
-        }
-        .file-placeholder {
-            width: 150px;
-            height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            background-color: #f8f9fa;
-            color: #333;
-            font-size: 12px;
-            text-align: center;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        .image-item a {
-            display: block;
-            margin-top: 8px;
-            font-size: 12px;
-            color: #007bff;
-            text-decoration: none;
-            word-break: break-all;
-        }
-        .image-item a:hover {
-            text-decoration: underline;
-        }
-        .lang-note {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
-        }
-        .subfolder-section {
-            margin: 15px 0;
-            border-left: 3px solid #007bff;
-            padding-left: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-        }
-        .subfolder-heading {
-            background-color: #e9ecef;
-            color: #495057;
-            padding: 10px 15px;
-            cursor: pointer;
-            user-select: none;
-            font-size: 16px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-        .subfolder-heading:hover {
-            background-color: #dee2e6;
-        }
-        .subfolder-heading.collapsed + .subfolder-gallery {
-            display: none;
-        }
-        .subfolder-gallery {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            padding: 0;
-            margin: 0;
-            gap: 15px;
-        }
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
-        .language-selector-form {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background-color: white;
-            padding: 6px 10px;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-        .language-selector-form label {
-            font-weight: bold;
-            color: #495057;
-        }
-        .language-selector-form select {
-            padding: 6px 10px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .toggle-icon::before {
-            content: "▼";
-        }
-        .section-heading.collapsed .toggle-icon::before,
-        .subfolder-heading.collapsed .toggle-icon::before {
-            content: "▶";
-        }
-        .lightbox {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .lightbox img {
-            max-width: 90%;
-            max-height: 90%;
-            cursor: pointer;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= $currentTab === 'gallery' ? 'Asset library' : 'Asset status' ?> · Global Bible School</title>
+    <link rel="stylesheet" href="workspace.css?v=2">
+    <script src="workspace.js?v=2" defer></script>
 </head>
 <body>
-    <div class="page-header">
-        <h1>Global Bible School Image Gallery</h1>
-        <form method="get" class="language-selector-form">
-            <input type="hidden" name="tab" value="<?php echo htmlspecialchars($currentTab); ?>">
-            <label for="language-select">Language</label>
-            <select id="language-select" name="lang" onchange="this.form.submit()">
-                <option value="" <?php echo $currentLanguage === '' ? 'selected' : ''; ?>>Select language</option>
-                <?php foreach ($availableLanguages as $language): ?>
-                    <option value="<?php echo htmlspecialchars($language); ?>" <?php echo $currentLanguage === $language ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars(strtoupper($language)); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </form>
-    </div>
-
-    <div class="tabs">
-        <a href="?tab=gallery" class="tab-button <?php echo $currentTab === 'gallery' ? 'active' : ''; ?>">Gallery View</a>
-        <a href="?tab=status" class="tab-button <?php echo $currentTab === 'status' ? 'active' : ''; ?>">Image Status</a>
-    </div>
-
-    <!-- Gallery Tab Content -->
-    <div class="tab-content <?php echo $currentTab === 'gallery' ? 'active' : ''; ?>" id="gallery-tab">
+<?php workspaceHeader($currentTab, $currentLanguage, $languageLabels); ?>
+<main class="workspace-main" id="main-content">
+<h1 class="sr-only"><?= $currentTab === 'gallery' ? 'Asset library' : 'Asset status' ?></h1>
+<?php
+workspaceToolbar($currentTab === 'gallery' ? 'Search collections or filenames…' : 'Search image names or folders…', $currentTab === 'gallery');
+if (!$topLevelFolders): ?>
+<div class="empty-state"><strong>Your asset library is ready</strong><p>Assets will appear here when the image folders have been synced.</p></div>
+<?php endif; ?>
+<?php if ($currentTab === 'gallery'): ?>
+    <p class="helper">Image: preview · Filename: copy link</p>
+    <section id="gallery-tab" aria-label="Asset collections">
     <?php foreach ($topLevelFolders as $folder): ?>
         <?php
         $subfolders = getSubfoldersForFolder($baseDir, $folder);
@@ -518,21 +258,22 @@ if (in_array($requestedLanguage, $availableLanguages, true)) {
         $folderImages = getImagesInFolder($folderPath, $baseUrl);
         ?>
 
-        <div class="image-section">
-            <div class="section-heading collapsed" onclick="toggleSection(this)">
-                <span><?php echo htmlspecialchars($folder); ?></span>
-                <span class="toggle-icon"></span>
-            </div>
-            <ul class="image-gallery">
+        <div class="image-section" data-search-group>
+            <button type="button" class="section-heading" data-disclosure aria-expanded="true" aria-controls="folder-<?= workspaceEscape($folder) ?>">
+                <span class="card-label"><strong><?= workspaceEscape($collectionNames[$folder] ?? $folder) ?></strong><small><?= workspaceEscape($folder) ?></small></span>
+                <span class="chevron"><?= workspaceIcon('arrow') ?></span>
+            </button>
+            <ul class="image-gallery" id="folder-<?= workspaceEscape($folder) ?>">
+                <?php if (!$folderImages && !$subfolders): ?><li class="helper">No assets in this collection yet.</li><?php endif; ?>
                 <!-- Images directly in the main folder -->
                 <?php foreach ($folderImages as $image):
                     $url = getAbsoluteImageUrl($baseUrl, $folder . '/' . $image);
                     $extension = getFileExtension($image);
                     $previewable = isPreviewableExtension($extension);
                 ?>
-                    <li class="image-item">
+                    <li class="image-item" data-search-item data-search="<?= workspaceEscape(($collectionNames[$folder] ?? $folder) . ' ' . $folder . ' ' . $image) ?>">
                         <?php if ($previewable): ?>
-                            <img src="<?php echo htmlspecialchars($url); ?>" alt="<?php echo htmlspecialchars($image); ?>" data-copy-url="<?php echo htmlspecialchars($url); ?>">
+                            <button type="button" class="preview-button" aria-label="Preview <?= workspaceEscape($image) ?>"><img loading="lazy" src="<?php echo htmlspecialchars($url); ?>" alt="<?php echo htmlspecialchars($image); ?>" data-copy-url="<?php echo htmlspecialchars($url); ?>"></button>
                         <?php else: ?>
                             <div class="file-placeholder"><?php echo strtoupper(htmlspecialchars($extension)); ?></div>
                         <?php endif; ?>
@@ -579,12 +320,13 @@ if (in_array($requestedLanguage, $availableLanguages, true)) {
                             return strnatcasecmp($a['name'], $b['name']);
                         });
                     ?>
-                    <li class="subfolder-section">
-                        <div class="subfolder-heading collapsed" onclick="toggleSection(this)">
-                            <span><?php echo htmlspecialchars($subfolder); ?></span>
-                            <span class="toggle-icon"></span>
-                        </div>
-                        <ul class="subfolder-gallery">
+                    <li class="subfolder-section" data-search-group>
+                        <button type="button" class="subfolder-heading" data-disclosure aria-expanded="true" aria-controls="subfolder-<?= workspaceEscape($folder . '-' . $subfolder) ?>">
+                            <span><?= workspaceEscape($subfolder) ?> <span class="count-tag"><?= count($displayImages) ?> files</span></span>
+                            <span class="chevron"><?= workspaceIcon('arrow') ?></span>
+                        </button>
+                        <ul class="subfolder-gallery" id="subfolder-<?= workspaceEscape($folder . '-' . $subfolder) ?>">
+                            <?php if (!$displayImages): ?><li class="helper">No assets in this folder for the selected language.</li><?php endif; ?>
                             <?php foreach ($displayImages as $imageData):
                                 $image = $imageData['name'];
                                 $extension = getFileExtension($image);
@@ -607,9 +349,9 @@ if (in_array($requestedLanguage, $availableLanguages, true)) {
                                 }
                                 $previewable = isPreviewableExtension($extension);
                             ?>
-                                <li class="image-item">
+                                <li class="image-item" data-search-item data-search="<?= workspaceEscape(($collectionNames[$folder] ?? $folder) . ' ' . $folder . ' ' . $subfolder . ' ' . $label) ?>">
                                     <?php if ($previewable): ?>
-                                        <img src="<?php echo htmlspecialchars($previewUrl); ?>" alt="<?php echo htmlspecialchars($label); ?>" data-copy-url="<?php echo htmlspecialchars($linkUrl); ?>">
+                                        <button type="button" class="preview-button" aria-label="Preview <?= workspaceEscape($label) ?>"><img loading="lazy" src="<?php echo htmlspecialchars($previewUrl); ?>" alt="<?php echo htmlspecialchars($label); ?>" data-copy-url="<?php echo htmlspecialchars($linkUrl); ?>"></button>
                                     <?php else: ?>
                                         <div class="file-placeholder"><?php echo strtoupper(htmlspecialchars($extension)); ?></div>
                                     <?php endif; ?>
@@ -624,12 +366,14 @@ if (in_array($requestedLanguage, $availableLanguages, true)) {
             </ul>
         </div>
     <?php endforeach; ?>
-    </div>
-
-    <!-- Status Tab Content -->
-    <div class="tab-content <?php echo $currentTab === 'status' ? 'active' : ''; ?>" id="status-tab">
+    </section>
+<?php else: ?>
+    <div class="status-legend"><span><span class="status-present" aria-hidden="true">✓</span> Available</span><span><span class="status-missing" aria-hidden="true">–</span> Missing</span></div>
+    <section id="status-tab" aria-label="Asset status">
+    <?php $statusRowCount = 0; ?>
     <?php foreach ($topLevelFolders as $folder): ?>
-        <div class="top-level-title"><?php echo htmlspecialchars($folder); ?></div>
+        <section data-search-group>
+        <h2 class="top-level-title"><?= workspaceEscape($collectionNames[$folder] ?? $folder) ?></h2>
         <?php
             $subfolders = getSubfoldersForFolder($baseDir, $folder);
             foreach ($subfolders as $subfolder):
@@ -646,19 +390,21 @@ if (in_array($requestedLanguage, $availableLanguages, true)) {
                 $otherLanguages = array_values($otherLanguages);
                 sort($otherLanguages);
         ?>
-            <div class="subfolder-title"><?php echo htmlspecialchars($subfolder); ?></div>
+            <section class="status-group" data-search-group>
+            <h3 class="subfolder-title"><?php echo htmlspecialchars($subfolder); ?></h3>
+            <div class="table-scroll" tabindex="0" role="region" aria-label="<?= workspaceEscape($subfolder) ?> asset status">
             <table>
                 <thead>
                     <tr>
-                        <th>Image Name (eng)</th>
+                        <th scope="col">English original</th>
                         <?php foreach ($otherLanguages as $lang): ?>
-                            <th><?php echo htmlspecialchars($lang); ?></th>
+                            <th scope="col"><?= workspaceEscape($languageNames[$lang] ?? strtoupper($lang)) ?></th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($engImages as $image): ?>
-                        <tr>
+                    <?php foreach ($engImages as $image): $statusRowCount++; ?>
+                        <tr data-search-item data-search="<?= workspaceEscape(($collectionNames[$folder] ?? $folder) . ' ' . $folder . ' ' . $subfolder . ' ' . $image) ?>">
                             <td><?php echo htmlspecialchars($image); ?></td>
                             <?php foreach ($otherLanguages as $lang): ?>
                                 <?php
@@ -667,54 +413,29 @@ if (in_array($requestedLanguage, $availableLanguages, true)) {
                                 ?>
                                 <td>
                                     <?php if ($exists): ?>
-                                        <span class="status-icon status-present">✓</span>
+                                        <span class="status-present" role="img" aria-label="Available" title="Available">✓</span>
                                     <?php else: ?>
-                                        <span class="status-icon status-missing">✗</span>
+                                        <span class="status-missing" role="img" aria-label="Missing" title="Missing">–</span>
                                     <?php endif; ?>
                                 </td>
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
-            </table>
+            </table></div></section>
         <?php endforeach; ?>
+        </section>
     <?php endforeach; ?>
-    </div>
+    <?php if ($topLevelFolders && !$statusRowCount): ?><div class="empty-state"><strong>No English reference assets yet</strong><p>Status comparisons will appear when English source files are available.</p></div><?php endif; ?>
+    </section>
+<?php endif; ?>
+</main>
 
-    <script>
-        function toggleSection(heading) {
-            heading.classList.toggle('collapsed');
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            const lightbox = document.getElementById('lightbox');
-            const lightboxImg = document.getElementById('lightbox-img');
-            let currentUrl = '';
-            document.querySelectorAll('.image-item img').forEach(img => {
-                img.addEventListener('click', function() {
-                    currentUrl = this.dataset.copyUrl || this.dataset.fullUrl || new URL(this.currentSrc || this.src, window.location.href).href;
-                    lightboxImg.src = this.currentSrc || this.src;
-                    lightbox.style.display = 'flex';
-                });
-            });
-            lightbox.addEventListener('click', function(e) {
-                if (e.target === lightbox) {
-                    lightbox.style.display = 'none';
-                }
-            });
-            lightboxImg.addEventListener('click', function() {
-                lightbox.style.display = 'none';
-                navigator.clipboard.writeText(currentUrl || lightboxImg.currentSrc || lightboxImg.src || window.location.href);
-            });
-            document.querySelectorAll('.image-item a').forEach(a => {
-                a.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    navigator.clipboard.writeText(this.href || this.dataset.copyUrl || this.dataset.fullUrl || '');
-                });
-            });
-        });
-    </script>
-    <div id="lightbox" class="lightbox"><img id="lightbox-img" src="" alt=""></div>
+
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+    <div class="lightbox-panel"><div class="lightbox-toolbar"><strong id="lightbox-title">Asset preview</strong><button type="button" class="button primary" id="copy-preview">Copy asset link</button><button type="button" class="close" id="close-preview" aria-label="Close preview">&times;</button></div><img id="lightbox-img" alt=""></div>
+</div>
+<div id="copy-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="copy-title"><div class="modal-content"><button type="button" class="close" id="close-copy" aria-label="Close copy link">&times;</button><h2 id="copy-title">Copy asset link</h2><p>Automatic copying is unavailable. Select and copy this link.</p><input id="copy-url" aria-label="Asset link" readonly style="width:100%;padding:12px"></div></div>
+<div class="toast" id="workspace-toast" role="status" hidden></div>
 </body>
 </html>
-<?php
-?>

@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Copy app files
-COPY index.php /var/www/html/index.php
+COPY index.php workspace.php workspace.css workspace.js /var/www/html/
 COPY .htaccess /var/www/html/.htaccess
 COPY cors.conf /etc/apache2/conf-available/cors.conf
 RUN a2enconf cors
