@@ -1,0 +1,115 @@
+/* Shared compact interface. Keep identical in both repositories. */
+:root {font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 13px; line-height: 1.4; color: #20252a; background: #fff; --line: #dde1e5; --muted: #656d76; --accent: #245d9d;}
+* {box-sizing: border-box;}
+body {margin: 0;}
+button, input, select {font: inherit;}
+button {cursor: pointer;}
+a {color: var(--accent);}
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px;}
+[hidden] {display: none !important;}
+.icon {width: 16px; height: 16px; vertical-align: middle; flex-shrink: 0;}
+.sr-only {position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;}
+.skip-link {position: fixed; top: -50px; left: 12px; padding: 8px; background: #fff; z-index: 2000;}
+.skip-link:focus {top: 8px;}
+.workspace-header {border-bottom: 1px solid var(--line); background: #f6f7f8;}
+.header-inner {display: flex; align-items: center; gap: 24px; padding: 0 16px; min-height: 46px;}
+.brand {font-weight: 750; font-size: 15px; color: #20252a; text-decoration: none;}
+.workspace-nav {display: flex; align-self: stretch; gap: 20px;}
+.workspace-nav a {display: flex; align-items: center; white-space: nowrap; padding: 10px 0; color: #525960; border-bottom: 2px solid transparent; text-decoration: none;}
+.workspace-nav a:hover {color: #20252a;}
+.workspace-nav a[aria-current] {color: var(--accent); border-color: var(--accent); font-weight: 600;}
+.workspace-language {margin-left: auto;}
+select {max-width: 180px; padding: 4px 6px; border: 1px solid #c5cbd0; border-radius: 3px; background: #fff; color: inherit;}
+.workspace-main {padding: 12px 16px;}
+.toolbar {display: flex; align-items: center; gap: 12px; margin-bottom: 12px;}
+.search-field {display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid #c5cbd0; border-radius: 3px; width: 330px; max-width: 100%; color: var(--muted);}
+.search-field input {border: 0; background: none; width: 100%; min-width: 0; min-height: 30px; color: inherit;}
+.toolbar-actions {display: flex; align-items: center; gap: 12px;}
+#result-count {font-size: 11px; color: var(--muted);}
+.button {background: #f6f7f8; border: 1px solid #c5cbd0; border-radius: 3px; padding: 4px 9px; color: inherit; min-height: 28px;}
+.button:hover {background: #e9edf1;}
+.button.primary {background: var(--accent); border-color: var(--accent); color: #fff;}
+.helper {font-size: 11px; color: var(--muted); margin: 0 0 8px;}
+.empty-state {padding: 20px 0; color: var(--muted);}
+.empty-state p {margin: 6px 0;}
+.course-card {display: grid; grid-template-columns: 250px minmax(0,1fr); border-top: 1px solid var(--line);}
+.course-card:last-child {border-bottom: 1px solid var(--line);}
+.course-heading, .section-heading {display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 0; border: 0; background: none; color: inherit; text-align: left;}
+.course-heading {align-self: start; padding-right: 12px;}
+.card-label {min-width: 0; flex: 1;}
+.card-label strong {font-size: 13px; font-weight: 600; overflow-wrap: anywhere;}
+.card-label small {font-size: 11px; color: var(--muted); display: block; font-weight: 400;}
+.chevron {display: inline-block; color: var(--muted);}
+[aria-expanded="true"] > .chevron {transform: rotate(90deg);}
+.course-content {padding: 6px 0 6px 12px;}
+.course-content ul {display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 0; padding: 0;}
+.course-content li button {border: 1px solid #d9dfe5; border-radius: 3px; background: #fafbfc; color: var(--accent); padding: 3px 7px; font-size: 12px; min-height: 27px;}
+.course-content li button:hover {background: #eaf1f8; border-color: #9ab6d6;}
+.table-scroll {overflow: auto; border: 1px solid var(--line);}
+table {width: 100%; border-collapse: collapse; text-align: left; font-size: 12px;}
+th {font-weight: 600; color: #454c53; background: #f3f5f7; white-space: nowrap;}
+th, td {padding: 7px 12px; border-bottom: 1px solid #e8ebee;}
+tr:last-child td {border-bottom: 0;}
+tbody tr:hover {background: #f7f9fb;}
+.lang-code {margin-left: 5px; color: var(--muted); font-size: 11px;}
+.badge button {min-width: 34px; padding: 2px 6px; border: 0; border-radius: 3px; background: #edf0f3; color: #505861; text-decoration: underline; text-underline-offset: 2px;}
+.badge .warning {background: #fff2dc; color: #8a5213;}
+.badge .success {color: #357248; background: #edf6ef;}
+.status-present {color: #287340;}
+.status-missing {color: #9b551b;}
+.status-legend {display: flex; gap: 14px; font-size: 11px; color: var(--muted); margin: 0 0 8px;}
+.top-level-title {font-size: 14px; margin: 16px 0 6px;}
+.status-group {margin-bottom: 10px;}
+.subfolder-title {font-size: 12px; font-weight: 600; margin: 8px 0 5px;}
+.image-section {border-top: 1px solid var(--line); margin-bottom: 10px;}
+.section-heading .card-label small {display: inline; margin-left: 8px;}
+.image-gallery, .subfolder-gallery {display: flex; flex-wrap: wrap; gap: 12px; list-style: none; padding: 2px 0 10px; margin: 0;}
+.section-heading.collapsed + .image-gallery, .subfolder-heading.collapsed + .subfolder-gallery {display: none;}
+.subfolder-section {width: 100%;}
+.subfolder-heading {display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 6px; margin-bottom: 6px; width: 100%; text-align: left; border: 0; background: #f3f5f7; color: inherit; font-size: 12px;}
+.count-tag {color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 6px;}
+.image-item {width: 126px; min-width: 0;}
+.preview-button {display: block; border: 1px solid var(--line); padding: 0; width: 100%; background: #fafbfc;}
+.image-item img {display: block; width: 100%; height: 84px; object-fit: contain;}
+.image-item a {display: block; overflow-wrap: anywhere; font-size: 11px; margin-top: 4px;}
+.file-placeholder {height: 86px; display: grid; place-items: center; border: 1px solid var(--line); background: #f7f8fa; color: var(--muted);}
+.modal, .lightbox {display: none; position: fixed; inset: 0; padding: 16px; align-items: center; justify-content: center; background: #0006; z-index: 1000;}
+.modal-content {background: #fff; border-radius: 4px; padding: 18px; width: min(850px,100%); max-height: 90vh; overflow: auto;}
+.modal-header {font-size: 16px; font-weight: 600; padding-right: 36px; margin-bottom: 16px; overflow-wrap: anywhere;}
+.modal-body {line-height: 1.6; overflow-wrap: anywhere;}
+.modal-body .field-row {margin: 12px 0;}
+.modal-body hr {border: 0; border-top: 1px solid var(--line);}
+.modal-body img {max-width: 100%; max-height: 320px; display: block; object-fit: contain; margin: 8px 0;}
+.modal-body pre {white-space: pre-wrap;}
+.summary-title, .summary-subtitle {font-weight: 600; margin-top: 10px;}
+.summary-item {padding-left: 12px;}
+.close {float: right; border: 1px solid #c5cbd0; background: #f6f7f8; border-radius: 3px; width: 28px; height: 28px; padding: 0; font-size: 21px; line-height: 1; color: #4c545c;}
+.lightbox-panel {background: #fff; padding: 12px; border-radius: 4px; width: min(960px,100%);}
+.lightbox-toolbar {display: flex; align-items: center; gap: 10px; margin-bottom: 12px;}
+.lightbox-toolbar strong {flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 12px;}
+.lightbox img {display: block; max-width: 100%; max-height: 78vh; object-fit: contain; margin: auto; cursor: copy;}
+.toast {position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); background: #25313e; color: #fff; padding: 8px 14px; border-radius: 3px; z-index: 2000;}
+.workspace-footer {padding: 4px 16px 12px; font-size: 11px; color: var(--muted);}
+@media (max-width: 760px) {
+    .header-inner {flex-wrap: wrap; gap: 0 16px; padding: 7px 12px 0;}
+    .workspace-language {order: 2;}
+    .workspace-nav {order: 3; width: 100%; gap: 16px; font-size: 12px;}
+    .workspace-main {padding: 10px 12px;}
+    .course-card {grid-template-columns: 190px minmax(0,1fr);}
+}
+@media (max-width: 480px) {
+    .workspace-nav {gap: 0; justify-content: space-between; font-size: 11px;}
+    .toolbar {gap: 8px; flex-wrap: wrap;}
+    .search-field {flex: 1; min-width: 180px;}
+    #result-count {display: none;}
+    .toolbar-actions {gap: 0;}
+    .course-card {display: block;}
+    .course-heading {padding: 7px 0 3px;}
+    .card-label small {display: inline; margin-left: 6px;}
+    .course-content {padding: 4px 0 8px;}
+    .course-content li button {min-height: 30px;}
+    .image-gallery, .subfolder-gallery {gap: 10px;}
+    .image-item {width: calc((100% - 20px) / 3);}
+    th, td {padding: 7px 9px;}
+    .lightbox-toolbar {flex-wrap: wrap;}
+}
