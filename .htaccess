@@ -2,6 +2,7 @@ SetEnvIf Origin "^(https?://([^/]+\.)?adventistinbox\.org)$" CORS_ORIGIN=$1
 Header set Access-Control-Allow-Origin "%{CORS_ORIGIN}e" env=CORS_ORIGIN
 
 RewriteEngine On
+RewriteRule ^webhook$ webhook.php [L]
 RewriteRule ^(.*)/_lang_/(.*)$ $1/eng/$2 [L]
 
 # Serve root-path URLs from the images/ folder,

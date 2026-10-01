@@ -18,7 +18,11 @@ COPY .htaccess /var/www/html/.htaccess
 COPY cors.conf /etc/apache2/conf-available/cors.conf
 RUN a2enconf cors
 COPY sync.py /usr/local/bin/sync.py
-RUN chmod +x /usr/local/bin/sync.py
+COPY watch.py /usr/local/bin/watch.py
+COPY sync-worker.py /usr/local/bin/sync-worker.py
+RUN chmod +x /usr/local/bin/sync.py /usr/local/bin/watch.py
+
+COPY webhook.php /var/www/html/webhook.php
 
 # Copy entrypoint
 COPY entrypoint.sh /entrypoint.sh
